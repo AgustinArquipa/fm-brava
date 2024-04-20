@@ -11,33 +11,97 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
+import json, os
+
+# Para la implementacion de mensajes, cambio en las constantes
+from django.contrib.messages import constants as mensajes
+from django.core.exceptions import ImproperlyConfigured
+
+MESSAGE_TAGS = {
+    mensajes.DEBUG: 'alert-debug',
+    mensajes.INFO: 'alert-info',
+    mensajes.SUCCESS: 'alert-success',
+    mensajes.WARNING: 'alert-warning',
+    mensajes.ERROR: 'alert-danger'
+}
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Verificamos si estamos en entorno de desarrollo o de produccion
+DEVELOPMENT_ENVIROMENT = os.environ.get("DEVELOPMENT_ENVIRONMENT", "False").lower() == "true"
+
+# Configuracion de secretos
+if DEVELOPMENT_ENVIROMENT:
+    # en entorno de desarrollo cargamos desde secret.json
+    with open("secret.json") as f:
+        secret = json.loads(f.read())
+else:
+    # En entorno de producion usamos variable de entorno
+    secret = {
+        "SECRET_KEY": os.environ.get("SECRET_KEY"),
+        "EMAIL_HOST": os.environ.get("EMAIL_HOST"),
+        "EMAIL_HOST_USER": os.environ.get("EMAIL_HOST_USER"),
+        "EMAIL_HOST_PASSWORD": os.environ.get("EMAIL_HOST_PASSWORD"),
+        "DEFAULT_FROM_EMAIL": os.environ.get("DEFAULT_FROM_EMAIL"),
+        "DB_NAME": os.environ.get('DB_NAME'),
+        "DB_USER": os.environ.get('DB_USER'),
+        "DB_PASSWORD": os.environ.get('DB_PASSWORD'),
+        "DB_HOST": os.environ.get('DB_HOST'),
+        "DB_PORT": os.environ.get('DB_PORT'),
+        # Agrega otras variables según sea necesario
+    }
+
+# definimos una funcion que nos permita obtener el secret_key
+def get_secret(secret_name, secrets=secret):
+    try:
+        return secrets[secret_name]
+    except KeyError:
+        raise ImproperlyConfigured("Set the {} environment variable".format(secret_name))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-7x-4b5bo*79z-#o8%eiwlp#)$0os(*zoj7m)o=9hnh3ms%9s9w'
+#SECRET_KEY = 'django-insecure-7x-4b5bo*79z-#o8%eiwlp#)$0os(*zoj7m)o=9hnh3ms%9s9w'
+SECRET_KEY = get_secret('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
 
-INSTALLED_APPS = [
+DJANGO_APPS = (
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-]
+    'django.contrib.sites',
+)
+
+LOCAL_APPS = (
+    'core',
+)
+
+THIRD_PARTY_APPS = (
+    'daphne',
+
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    
+    'social_django',
+
+    'crispy_forms',
+    'crispy_bootstrap4',
+)
+
+INSTALLED_APPS = THIRD_PARTY_APPS + LOCAL_APPS + DJANGO_APPS
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
