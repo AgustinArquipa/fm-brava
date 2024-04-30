@@ -86,11 +86,10 @@ DJANGO_APPS = (
 
 LOCAL_APPS = (
     'core',
+    'programs',
 )
 
 THIRD_PARTY_APPS = (
-    'daphne',
-
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
@@ -105,6 +104,7 @@ INSTALLED_APPS = THIRD_PARTY_APPS + LOCAL_APPS + DJANGO_APPS
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
